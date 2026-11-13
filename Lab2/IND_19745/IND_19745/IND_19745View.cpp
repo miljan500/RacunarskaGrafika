@@ -35,15 +35,18 @@ END_MESSAGE_MAP()
 CIND19745View::CIND19745View() noexcept
 {
 	m_bHit = false;
-	m_rotStep = 5.6;
+	m_rotStep = 30;
 	m_rotBase = 0;
-	m_rotLocal = 0;
+	m_rotLocal = 45;
 
 	m_gridEnd = 500;
 	m_gridStep = 25;
 
 	m_bgEnd.x = 500;
 	m_bgEnd.y = 500;
+
+	cactusPartLight = GetEnhMetaFile(_T("cactus_part_light.emf"));
+	cactusPart = GetEnhMetaFile(_T("cactus_part.emf"));
 
 	m_pot1 = new CPoint[4]{
 		{ int(m_gridStep * 8.4),  int(m_gridStep * 19.9) },
@@ -60,18 +63,19 @@ CIND19745View::CIND19745View() noexcept
 	};
 
 
-	m_cactusNodes = new CPoint[6]{
+	m_cactusNodes = new CPoint[5]{
 		{ int(m_gridStep * 10),  int(m_gridStep * 17) },
 		{ int(m_gridStep * 10),  int(m_gridStep * 14) },
-		{ int(m_gridStep * 7.9), int(m_gridStep * 11.9) },
 		{ int(m_gridStep * 12.1), int(m_gridStep * 11.9) },
 		{ int(m_gridStep * 15), int(m_gridStep * 11.9) },
-		{ int(m_gridStep * 7.9), int(m_gridStep * 9) },
+		{ int(m_gridStep * 12.1), int(m_gridStep * 9) },
 	};
 }
 
 CIND19745View::~CIND19745View()
 {
+	DeleteEnhMetaFile(cactusPartLight);
+	DeleteEnhMetaFile(cactusPart);
 }
 
 BOOL CIND19745View::PreCreateWindow(CREATESTRUCT& cs)
@@ -165,50 +169,50 @@ void CIND19745View::DrawFigure(CDC* pdc) {
 	pdc->SelectObject(&greenBrush);
 
 	int prevGraphicsMode = pdc->SetGraphicsMode(GM_ADVANCED);
-	XFORM oldT, temp,temp1;
+	XFORM oldT, temp;
 	pdc->GetWorldTransform(&oldT);
 
-	RotateAt(pdc, m_cactusNodes[0].x, m_cactusNodes[0].y, m_rotBase, false);
+	// Globalna rotacija
+	Translate(pdc, 250, 250, false);
+	Rotate(pdc,-90,false);
+	Translate(pdc, -250, -250, false);
 
-	HENHMETAFILE cactusPartLight = GetEnhMetaFile(_T("cactus_part_light.emf"));
-	HENHMETAFILE cactusPart = GetEnhMetaFile(_T("cactus_part.emf"));
+	// Node 0 crtanje
+	DrawCactusNode(pdc, m_cactusNodes[0], m_gridStep / 2);
 
 	// Node0
-	DrawCactusPart(pdc, m_cactusNodes[0].x, m_cactusNodes[0].y, 2.75, 0, cactusPartLight);
+	DrawCactusPart(pdc, m_cactusNodes[0].x, m_cactusNodes[0].y, 2.75, 0, cactusPart);
 
 	// Node1
-	DrawCactusPart(pdc, m_cactusNodes[1].x, m_cactusNodes[1].y, 1, 45, cactusPart);
-	DrawCactusPart(pdc, m_cactusNodes[1].x, m_cactusNodes[1].y, 1, -45, cactusPart);
-
-	// Node3
-	DrawCactusPart(pdc, m_cactusNodes[3].x, m_cactusNodes[3].y, 1.8, 90, cactusPart);
-	
-	// Node4
-	DrawCactusPart(pdc, m_cactusNodes[4].x, m_cactusNodes[4].y, 1.8, 45, cactusPart);
-	DrawCactusPart(pdc, m_cactusNodes[4].x, m_cactusNodes[4].y, 1.8, 135, cactusPart);
+	pdc->GetWorldTransform(&temp);
+	RotateAt(pdc, m_cactusNodes[1].x, m_cactusNodes[1].y, m_rotBase, false);
+	DrawCactusPart(pdc, m_cactusNodes[1].x, m_cactusNodes[1].y, 1, 45, cactusPartLight);
 
 	// Node2
 	DrawCactusPart(pdc, m_cactusNodes[2].x, m_cactusNodes[2].y, 1.8, 0, cactusPart);
-	DrawCactusPart(pdc, m_cactusNodes[2].x, m_cactusNodes[2].y, 1.8, -90, cactusPart);
+	DrawCactusPart(pdc, m_cactusNodes[2].x, m_cactusNodes[2].y, 1.8, 90, cactusPart);
 
-	// Node5
-	DrawCactusPart(pdc, m_cactusNodes[5].x, m_cactusNodes[5].y, 2.5, 0, cactusPart);
-
-	// Node3 Light
-	DrawCactusPart(pdc, m_cactusNodes[3].x, m_cactusNodes[3].y, 1.8, m_rotLocal, cactusPartLight);
+	// Node3
+	DrawCactusPart(pdc, m_cactusNodes[3].x, m_cactusNodes[3].y, 1.8, 45, cactusPart);
+	DrawCactusPart(pdc, m_cactusNodes[3].x, m_cactusNodes[3].y, 1.8, 135, cactusPart);
 	
-	// Node1 Center
+	// Node4
+	DrawCactusPart(pdc, m_cactusNodes[4].x, m_cactusNodes[4].y, 1, m_rotLocal, cactusPartLight);
+	DrawCactusPart(pdc, m_cactusNodes[4].x, m_cactusNodes[4].y, 1, 0, cactusPart);
+	DrawCactusPart(pdc, m_cactusNodes[4].x, m_cactusNodes[4].y, 1, -45, cactusPart);
+
+	// Rotating nodes
+	for (int i = 2; i < 5; i++)
+		DrawCactusNode(pdc, m_cactusNodes[i], m_gridStep / 2);
+
+	pdc->SetWorldTransform(&temp);
+
+	// Node1 parts
+	DrawCactusPart(pdc, m_cactusNodes[1].x, m_cactusNodes[1].y, 1, -45, cactusPart);
 	DrawCactusPart(pdc, m_cactusNodes[1].x, m_cactusNodes[1].y, 1, 0, cactusPart);
 
-	DeleteEnhMetaFile(cactusPartLight);
-	DeleteEnhMetaFile(cactusPart);
-
-	// Nodes
-	for(int i=0;i<6;i++)
-		DrawCactusNode(pdc,m_cactusNodes[i],m_gridStep/2);
-
-	pdc->SetWorldTransform(&oldT);
-	pdc->SetGraphicsMode(prevGraphicsMode);
+	// Fixed nodes
+	DrawCactusNode(pdc, m_cactusNodes[1], m_gridStep / 2);
 
 	CBrush brownBrush(RGB(222, 148, 0));
 	pdc->SelectObject(&brownBrush);
@@ -216,6 +220,9 @@ void CIND19745View::DrawFigure(CDC* pdc) {
 	// Pot
 	pdc->Polygon(m_pot1, 4);
 	pdc->Polygon(m_pot2, 4);
+
+	pdc->SetWorldTransform(&oldT);
+	pdc->SetGraphicsMode(prevGraphicsMode);
 }
 
 void CIND19745View::OnDraw(CDC* pdc)

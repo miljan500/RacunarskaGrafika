@@ -50,6 +50,10 @@ protected:
 	float m_rotBase;
 	float m_rotLocal;
 
+
+	HENHMETAFILE cactusPartLight;
+	HENHMETAFILE cactusPart;
+
 	void Translate(CDC* pDC, float dX, float dY, bool rightMultiply);
 	void Scale(CDC* pDC, float sX, float sY, bool rightMultiply);
 	void Rotate(CDC* pDC, float angle, bool rightMultiply);
