@@ -83,33 +83,6 @@
     <Image Include="res\Toolbar.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\part1.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\part2.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\part3.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\part4.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\part5.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\part6.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\part7.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\part8.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\part9.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\bitmap1.bmp">
       <Filter>Resource Files</Filter>
     </Image>

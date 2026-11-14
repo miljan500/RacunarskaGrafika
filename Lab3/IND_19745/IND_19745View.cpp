@@ -34,12 +34,25 @@ END_MESSAGE_MAP()
 
 CIND19745View::CIND19745View() noexcept
 {
-	// TODO: add construction code here
+	images = new DImage[9];
 
+	for (int i = 0; i < 9; i++)
+	{
+		CString path;
+		path.Format(_T("res/part%d.bmp"), i );
+
+		images[i].Load(path);
+		FilterColor(images[i].GetBitmap(), images[i].Width(), images[i].Height());
+	}
+
+	gridStep = images[0].Width()/8;
+	gridEnd = 16 * gridStep;
 }
 
 CIND19745View::~CIND19745View()
 {
+	delete[] images;
+	images = NULL;
 }
 
 BOOL CIND19745View::PreCreateWindow(CREATESTRUCT& cs)
@@ -103,11 +116,12 @@ void CIND19745View::Mirror(CDC* pdc, bool mx, bool my, bool rightMultiply) {
 		pdc->ModifyWorldTransform(&t, MWT_LEFTMULTIPLY);
 }
 
-void CIND19745View::DrawPuzzlePiece(CDC* pdc, DImage& img, float x, float y, float angle, float sx, float sy, bool mx, bool my) {
+void CIND19745View::TransparentPuzzlePiece(CDC* pdc, DImage& img) {
 	int w = img.Width();
 	int h = img.Height();
 
 	CBitmap* image = img.GetBitmap();
+
 	CBitmap mask1;
 	mask1.CreateBitmap(w, h, 1, 1, NULL);
 
@@ -139,12 +153,89 @@ void CIND19745View::DrawPuzzlePiece(CDC* pdc, DImage& img, float x, float y, flo
 
 	CBitmap* old_mem_bm = memdc->SelectObject(&mask1);
 	pdc->BitBlt(0, 0, w, h, memdc, 0, 0, SRCAND);
+	
+	//FilterColor(image, w, h);
 	memdc->SelectObject(image);
+
 	pdc->BitBlt(0, 0, w, h, memdc, 0, 0, SRCPAINT);
 
 	memdc->SelectObject(old_mem_bm);
 	delete memdc;
+}
 
+void CIND19745View::FilterColor(CBitmap* bitMap,int w,int h) {
+
+	BITMAP bm;
+	bitMap->GetBitmap(&bm);
+
+	int stride = bm.bmWidthBytes; 
+	int bytesPerPixel = bm.bmBitsPixel / 8; 
+
+	if (bytesPerPixel < 3)
+		return;
+
+	int size = stride * h;
+	BYTE* pixels = new BYTE[size];
+
+	bitMap->GetBitmapBits(size, pixels);
+
+	for (int y = 0; y < h; y++) {
+		BYTE* row = pixels + y * stride;
+		for (int x = 0; x < w; x++) {
+			int i = x * bytesPerPixel;
+
+			BYTE B = row[i];
+			BYTE G = row[i + 1];
+			BYTE R = row[i + 2];
+
+			if (R == 0 && G == 255 && B == 0)
+				continue;
+
+			int gray = 64 +(R + G + B) / 3;
+			if (gray > 255)
+				gray = 255;
+
+			row[i] = (BYTE) gray;
+			row[i + 1] = (BYTE) gray; 
+			row[i + 2] = (BYTE) gray; 
+		}
+	}
+
+	bitMap->SetBitmapBits(size, pixels);
+	delete[] pixels;
+}
+
+
+void CIND19745View::DrawPuzzlePiece(CDC* pdc, DImage& img, float x, float y, float angle, float sx, float sy, bool mx, bool my) {
+	
+	int old_gmode = pdc->SetGraphicsMode(GM_ADVANCED);
+	XFORM temp;
+	pdc->GetWorldTransform(&temp);
+
+	//Translate(pdc, x, y, false);
+	//Scale(pdc, sx, sy, false);
+	//
+	//Translate(pdc, img.Width() / 2, img.Height() / 2, false);
+	//Mirror(pdc, mx, my, false);
+	//Rotate(pdc, angle, false);
+	//Translate(pdc, -img.Width() / 2, -img.Height() / 2, false);
+
+	Translate(pdc, x, y, false);
+
+	Scale(pdc, sx, sy, false);
+
+	Mirror(pdc, mx, my, false);
+	Rotate(pdc, angle, false);
+
+	Translate(pdc, -img.Width() / 2.0f, -img.Height() / 2.0f, false);
+
+
+	//FilterColor(img.GetBitmap(), img.Width(), img.Height());
+	TransparentPuzzlePiece(pdc, img);
+
+
+	pdc->SetWorldTransform(&temp);
+	pdc->SetGraphicsMode(old_gmode);
 }
 
 
@@ -155,72 +246,36 @@ void CIND19745View::OnDraw(CDC* pdc)
 	if (!pDoc)
 		return;
 
-	// PRIKAZ BITMAPE
-	
-	//CBitmap cb1;
-	//cb1.LoadBitmapW(310);
-	//CDC* mdc = new CDC();
-	//mdc->CreateCompatibleDC(pdc);
-	//mdc->SelectObject(cb1);
+	DrawGrid(pdc);
 
-	//pdc->BitBlt(0, 0, 256, 256, mdc, 0, 0, SRCCOPY);
+	float xstep = gridStep * 0.8;
+	float ystep = gridStep * 0.9;
 
-	//delete mdc;
+	DrawPuzzlePiece(pdc, images[1], xstep*10-15, ystep*9, -32.5-90, 1, 1, false, true);
+	DrawPuzzlePiece(pdc, images[2], xstep*15, ystep*9, -107, 1, 1, false, true);
+	DrawPuzzlePiece(pdc, images[8], xstep*4-11, ystep*9+4, -74, 1, 1, false, true);
 
+	DrawPuzzlePiece(pdc, images[0], xstep*4+5, ystep*4, 114-90, 1, 1, false, true);
+	DrawPuzzlePiece(pdc, images[6], xstep*10, ystep*4-2, 55, 1, 1, false, true);
+	DrawPuzzlePiece(pdc, images[4], xstep*15+12, ystep*4-10, 105, 1, 1, false, true);
 
-	// TRANSPARENTNOST
-	
-	//CBitmap image;
-	//image.LoadBitmapW(310);
+	DrawPuzzlePiece(pdc, images[3], xstep*4-10, ystep*15-30, -161, 1, 1, false, true);
+	DrawPuzzlePiece(pdc, images[5], xstep*10-15, ystep*15-15, -67.5, 1, 1, false, true);
+	DrawPuzzlePiece(pdc, images[7], xstep*15+12, ystep*15-13, -18, 1, 1, false, true);
+}
 
-	//BITMAP bit_mask;
-	//image.GetBitmap(&bit_mask);
-	//int sX = bit_mask.bmWidth;
-	//int sY = bit_mask.bmHeight;
+void CIND19745View::DrawGrid(CDC* pdc) {
+	CPen grayPen(PS_SOLID, 2, RGB(230, 230, 230));
+	CPen *old = pdc->SelectObject(&grayPen);
 
-	//CBitmap cbit_mask;
-	//cbit_mask.CreateBitmap(sX, sY, 1, 1, NULL);
+	for (int i = 1; i < gridEnd; i += gridStep) {
+		pdc->MoveTo(i, 0);
+		pdc->LineTo(i, gridEnd);
+		pdc->MoveTo(0, i);
+		pdc->LineTo(gridEnd, i);
+	}
 
-	//CDC* srcdc = new CDC();
-	//srcdc->CreateCompatibleDC(pdc);
-	//CDC* dstdc = new CDC();
-	//dstdc->CreateCompatibleDC(pdc);
-
-	//CBitmap* old_src = srcdc->SelectObject(&image);
-	//CBitmap* old_dst = dstdc->SelectObject(&cbit_mask);
-
-	//COLORREF colorTopLeft = srcdc->GetPixel(0, 0);
-	//COLORREF old_color_bk = srcdc->SetBkColor(colorTopLeft);
-
-	//dstdc->BitBlt(0, 0, bit_mask.bmWidth, bit_mask.bmHeight, srcdc, 0, 0, SRCCOPY);
-
-	//COLORREF old_color_fg = srcdc->SetTextColor(RGB(255,255,255));
-	//srcdc->SetBkColor(RGB(0, 0, 0));
-	//srcdc->BitBlt(0, 0, sX, sX, dstdc, 0, 0, SRCAND);
-	////pdc->BitBlt(0, 0, sX, sY, srcdc, 0, 0, SRCCOPY);
-
-	//srcdc->SelectObject(old_src);
-	//dstdc->SelectObject(old_dst);
-	//srcdc->SetBkColor(old_color_bk);
-	//srcdc->SetTextColor(old_color_fg);
-	//delete srcdc;
-	//delete dstdc;
-
-	//CDC* memdc = new CDC();
-	//memdc->CreateCompatibleDC(pdc);
-
-	//CBitmap *oldbm = memdc->SelectObject(&cbit_mask);
-	//pdc->BitBlt(0, 0, sX, sY, memdc, 0, 0, SRCAND);
-	//memdc->SelectObject(&image);
-	//pdc->BitBlt(0, 0, sX, sY, memdc, 0, 0, SRCPAINT);
-
-	//memdc->SelectObject(oldbm);
-	//delete memdc;
-
-	DImage img1;
-	img1.Load(CString("res/part1.bmp"));
-	DrawPuzzlePiece(pdc, img1, 0, 0, 0, 1, 1, false, false);
-	
+	pdc->SelectObject(old);
 }
 
 

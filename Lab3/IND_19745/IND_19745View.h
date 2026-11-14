@@ -35,12 +35,19 @@ public:
 #endif
 
 protected:
+	int gridStep;
+	int gridEnd;
+	DImage *images;
+
 	void Translate(CDC* pdc, float dX, float dY, bool rightMultiply);
 	void Scale(CDC* pdc, float sX, float sY, bool rightMultiply);
 	void Rotate(CDC* pdc, float angle, bool rightMultiply);
 	void Mirror(CDC* pdc, bool mx, bool my, bool rightMultiply);
 
 	void DrawPuzzlePiece(CDC* pDC, DImage& img, float x, float y, float angle, float sx, float sy, bool mx, bool my);
+	void TransparentPuzzlePiece(CDC* pdc, DImage& img);
+	void FilterColor(CBitmap* bitMap, int w, int h);
+	void DrawGrid(CDC* pdc);
 
 // Generated message map functions
 protected:
