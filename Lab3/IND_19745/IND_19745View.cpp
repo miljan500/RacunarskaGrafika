@@ -35,8 +35,8 @@ END_MESSAGE_MAP()
 
 CIND19745View::CIND19745View() noexcept
 {
-	MOVING_PIECE = 5;
-	moving_dx = 500;
+	MOVING_PIECE = 6;
+	moving_dx = 250;
 	moving_dy = 400;
 	moving_step = 2;
 
@@ -44,7 +44,7 @@ CIND19745View::CIND19745View() noexcept
 	for (int i = 0; i < 9; i++)
 	{
 		CString path;
-		path.Format(_T("res/part%d.bmp"), i );
+		path.Format(_T("slike/part%d.bmp"), i );
 
 		images[i].Load(path);
 	}
@@ -84,11 +84,7 @@ void CIND19745View::PreparePiece(CDC* pDC, int index)
 	CDC maskDC;
 	maskDC.CreateCompatibleDC(pDC);
 
-	CBitmap* oldMask =
-		maskDC.SelectObject(&masks[index]);
-
-	// Bela maska je providna oblast.
-	// Crna maska je vidljivi deo slagalice.
+	CBitmap* oldMask = maskDC.SelectObject(&masks[index]);
 
 	for (int y = 0; y < h; y++)
 	{
@@ -107,8 +103,6 @@ void CIND19745View::PreparePiece(CDC* pDC, int index)
 			maskDC.SetPixel( x, y, transparent ? RGB(255, 255, 255) : RGB(0, 0, 0));
 		}
 	}
-
-	// Filtriranje nakon kreiranja maske
 
 	if (index == MOVING_PIECE)
 		MakeBlue(img);
@@ -171,8 +165,6 @@ void CIND19745View::MakeGray(DImage& img)
 
 	img.Update();
 }
-
-// Plavi filter za pokretni deo
 
 void CIND19745View::MakeBlue(DImage& img)
 {
@@ -381,13 +373,9 @@ void CIND19745View::DrawPuzzlePiece(CDC* pDC, DImage& img, float x, float y, flo
 
 	COLORREF oldBk = pDC->SetBkColor(RGB(255, 255, 255));
 
-	pDC->SetStretchBltMode(COLORONCOLOR);
+	pDC->BitBlt(0, 0, w, h, &maskDC, 0, 0, SRCAND);
 
-	// Transparentnost - maska
-	pDC->StretchBlt(0, 0, w, h, &maskDC, 0, 0, w, h, SRCAND);
-
-	// Transparentnost - slika
-	pDC->StretchBlt(0, 0, w, h, &colorDC, 0, 0, w, h, SRCPAINT);
+	pDC->BitBlt(0, 0, w, h, &colorDC, 0, 0, SRCPAINT);
 
 	pDC->SetTextColor(oldText);
 	pDC->SetBkColor(oldBk);
@@ -429,20 +417,22 @@ void CIND19745View::OnDraw(CDC* pdc)
 	float xstep = gridStep * 0.8;
 	float ystep = gridStep * 0.9;
 
-	DrawPuzzlePiece(&memDC, images[0], xstep * 4 + 5, ystep * 4, 114 - 90, 1, 1, false, true);
-	DrawPuzzlePiece(&memDC, images[6], xstep*10, ystep*4-2, 55, 1, 1, false, true);
-	DrawPuzzlePiece(&memDC, images[4], xstep*15+21, ystep*4-10, 105, 1, 1, false, true);
+	// gore
+	DrawPuzzlePiece(&memDC, images[7], xstep * 4 + 8, ystep * 4-7, 58, 1, 1, false, true);
+	DrawPuzzlePiece(&memDC, images[2], xstep*10, ystep*4-2, 5, 1, 1, false, true);
+	DrawPuzzlePiece(&memDC, images[4], xstep*15+23, ystep*4-10-8, 128.5, 1, 1, false, true);
 
-	DrawPuzzlePiece(&memDC, images[8], xstep * 4 - 11, ystep * 9 + 4, -74, 1, 1, false, true);
-	DrawPuzzlePiece(&memDC, images[1], xstep * 10 - 15, ystep * 9, -32.5 - 90, 1, 1, false, true);
-	DrawPuzzlePiece(&memDC, images[2], xstep * 15+6, ystep * 9, -107.7, 1, 1, false, true);
+	// sredina
+	DrawPuzzlePiece(&memDC, images[5], xstep * 4+2+8, ystep * 9-7, 67.5, 1, 1, false, true);
+	DrawPuzzlePiece(&memDC, images[1], xstep * 10 - 15+8, ystep * 9-2, 26 - 90, 1, 1, false, true);
+	DrawPuzzlePiece(&memDC, images[8], xstep * 15+6+8+3, ystep * 9-2, -53.5, 1, 1, false, true);
 
-	DrawPuzzlePiece(&memDC, images[3], xstep*4-10, ystep*15-30, -161, 1, 1, false, true);
-	//DrawPuzzlePiece(&memDC, images[5], xstep*10-15, ystep*15-17, -67.5, 1, 1, false, true);
-	DrawPuzzlePiece(&memDC, images[7], xstep*15+15, ystep*15-14, -19, 1, 1, false, true);
+	//dole
+	//DrawPuzzlePiece(&memDC, images[6], xstep*4-10+8, ystep*15-22, -58.5, 1, 1, false, true);
+	DrawPuzzlePiece(&memDC, images[3], xstep*10-15+10, ystep*15-23, -58, 1, 1, false, true);
+	DrawPuzzlePiece(&memDC, images[0], xstep*15+15+13, ystep*15-37, 115.5, 1, 1, false, true);
 
-	DrawPuzzlePiece(&memDC, images[5], moving_dx, moving_dy, -67.5, 1, 1, false, true);
-
+	DrawPuzzlePiece(&memDC, images[6], moving_dx, moving_dy, -58.5, 1, 1, false, true);
 	pdc->BitBlt(0, 0, width, height, &memDC, 0, 0, SRCCOPY);
 
 	memDC.SelectObject(oldBuffer);

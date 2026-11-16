@@ -37,14 +37,13 @@ public:
 protected:
 	int gridStep;
 	int gridEnd;
+
 	DImage *images;
 
 	bool prepared[9] = {};
 	CBitmap masks[9];
 	CBitmap colors[9];
-	void CIND19745View::PreparePiece(CDC* pDC, int index);
-	void MakeBlue(DImage& img);
-	void MakeGray(DImage& img);
+
 	int MOVING_PIECE;
 	int moving_dx;
 	int moving_dy;
@@ -55,6 +54,10 @@ protected:
 	void Scale(CDC* pdc, float sX, float sY, bool rightMultiply);
 	void Rotate(CDC* pdc, float angle, bool rightMultiply);
 	void Mirror(CDC* pdc, bool mx, bool my, bool rightMultiply);
+
+	void PreparePiece(CDC* pDC, int index);
+	void MakeBlue(DImage& img);
+	void MakeGray(DImage& img);
 
 	void DrawPuzzlePiece(CDC* pDC, DImage& img, float x, float y, float angle, float sx, float sy, bool mx, bool my);
 	void TransparentPuzzlePiece(CDC* pdc, DImage& img);
