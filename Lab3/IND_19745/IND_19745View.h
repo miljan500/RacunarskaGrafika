@@ -39,7 +39,6 @@ protected:
 	int gridEnd;
 	DImage *images;
 
-	// Dodaci1
 	bool prepared[9] = {};
 	CBitmap masks[9];
 	CBitmap colors[9];

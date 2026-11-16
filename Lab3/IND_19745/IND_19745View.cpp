@@ -35,20 +35,18 @@ END_MESSAGE_MAP()
 
 CIND19745View::CIND19745View() noexcept
 {
-	images = new DImage[9];
 	MOVING_PIECE = 5;
 	moving_dx = 500;
 	moving_dy = 400;
 	moving_step = 2;
 
-
+	images = new DImage[9];
 	for (int i = 0; i < 9; i++)
 	{
 		CString path;
 		path.Format(_T("res/part%d.bmp"), i );
 
 		images[i].Load(path);
-		//FilterColor(images[i].GetBitmap(), images[i].Width(), images[i].Height());
 	}
 
 	gridStep = images[0].Width()/8;
@@ -62,12 +60,11 @@ CIND19745View::~CIND19745View()
 }
 
 
-void CIND19745View::PreparePiece(
-	CDC* pDC,
-	int index)
+void CIND19745View::PreparePiece(CDC* pDC, int index)
 {
 	if (prepared[index])
 		return;
+
 	prepared[index] = true;
 
 	DImage& img = images[index];
@@ -82,30 +79,7 @@ void CIND19745View::PreparePiece(
 	int keyG = pixels[1];
 	int keyR = pixels[2];
 
-	bool hasTransparent = false;
-	bool hasOpaque = false;
-
-	if (bpp == 4)
-	{
-		for (int i = 0; i < w * h; i++)
-		{
-			int alpha = pixels[i * bpp + 3];
-
-			if (alpha < 128)
-				hasTransparent = true;
-			else
-				hasOpaque = true;
-
-			if (hasTransparent && hasOpaque)
-				break;
-		}
-	}
-
-	bool useAlpha = hasTransparent && hasOpaque;
-
-	masks[index].CreateBitmap(
-		w, h, 1, 1, nullptr
-	);
+	masks[index].CreateBitmap(w, h, 1, 1, nullptr);
 
 	CDC maskDC;
 	maskDC.CreateCompatibleDC(pDC);
@@ -124,28 +98,13 @@ void CIND19745View::PreparePiece(
 
 			bool transparent = false;
 
-			if (useAlpha)
-			{
-				transparent = pixels[i + 3] < 128;
-			}
-			else
-			{
-				int db = abs((int)pixels[i] - keyB);
-				int dg = abs((int)pixels[i + 1] - keyG);
-				int dr = abs((int)pixels[i + 2] - keyR);
+			int db = abs((int)pixels[i] - keyB);
+			int dg = abs((int)pixels[i + 1] - keyG);
+			int dr = abs((int)pixels[i + 2] - keyR);
 
-				transparent =
-					db < 25 &&
-					dg < 25 &&
-					dr < 25;
-			}
+			transparent = db < 25 && dg < 25 && dr < 25;
 
-			maskDC.SetPixel(
-				x, y,
-				transparent
-				? RGB(255, 255, 255)
-				: RGB(0, 0, 0)
-			);
+			maskDC.SetPixel( x, y, transparent ? RGB(255, 255, 255) : RGB(0, 0, 0));
 		}
 	}
 
@@ -156,33 +115,20 @@ void CIND19745View::PreparePiece(
 	else
 		MakeGray(img);
 
-	colors[index].CreateCompatibleBitmap(
-		pDC, w, h
-	);
+	colors[index].CreateCompatibleBitmap(pDC, w, h);
 
 	CDC colorDC;
 	colorDC.CreateCompatibleDC(pDC);
 
-	CBitmap* oldColor =
-		colorDC.SelectObject(&colors[index]);
+	CBitmap* oldColor = colorDC.SelectObject(&colors[index]);
 
-	img.Draw(
-		&colorDC,
-		CRect(0, 0, w, h),
-		CRect(0, 0, w, h)
-	);
+	img.Draw(&colorDC,CRect(0, 0, w, h), CRect(0, 0, w, h));
 
-	COLORREF oldText =
-		colorDC.SetTextColor(RGB(255, 255, 255));
+	COLORREF oldText = colorDC.SetTextColor(RGB(255, 255, 255));
 
-	COLORREF oldBk =
-		colorDC.SetBkColor(RGB(0, 0, 0));
+	COLORREF oldBk = colorDC.SetBkColor(RGB(0, 0, 0));
 
-	colorDC.BitBlt(
-		0, 0, w, h,
-		&maskDC, 0, 0,
-		SRCAND
-	);
+	colorDC.BitBlt(0, 0, w, h, &maskDC, 0, 0, SRCAND);
 
 	colorDC.SetTextColor(oldText);
 	colorDC.SetBkColor(oldBk);
@@ -265,9 +211,6 @@ void CIND19745View::MakeBlue(DImage& img)
 
 BOOL CIND19745View::PreCreateWindow(CREATESTRUCT& cs)
 {
-	// TODO: Modify the Window class or styles here by modifying
-	//  the CREATESTRUCT cs
-
 	return CView::PreCreateWindow(cs);
 }
 
@@ -331,8 +274,7 @@ void CIND19745View::TransparentPuzzlePiece(CDC* pdc, DImage& img)
 	int w = img.Width();
 	int h = img.Height();
 
-	CDC maskDC;
-	CDC colorDC;
+	CDC maskDC, colorDC;
 
 	maskDC.CreateCompatibleDC(pdc);
 	colorDC.CreateCompatibleDC(pdc);
@@ -343,17 +285,9 @@ void CIND19745View::TransparentPuzzlePiece(CDC* pdc, DImage& img)
 	COLORREF oldText = pdc->SetTextColor(RGB(255, 255, 255));
 	COLORREF oldBk = pdc->SetBkColor(RGB(0, 0, 0));
 
-	pdc->BitBlt(
-		0, 0, w, h,
-		&maskDC, 0, 0,
-		SRCAND
-	);
+	pdc->BitBlt(0, 0, w, h, &maskDC, 0, 0, SRCAND);
 
-	pdc->BitBlt(
-		0, 0, w, h,
-		&colorDC, 0, 0,
-		SRCPAINT
-	);
+	pdc->BitBlt(0, 0, w, h, &colorDC, 0, 0, SRCPAINT);
 
 	pdc->SetTextColor(oldText);
 	pdc->SetBkColor(oldBk);
@@ -434,41 +368,26 @@ void CIND19745View::DrawPuzzlePiece(CDC* pDC, DImage& img, float x, float y, flo
 	Rotate(pDC, angle, false);
 	Translate(pDC, -w / 2.0f, -h / 2.0f, false);
 
-	CDC maskDC;
-	CDC colorDC;
+	CDC maskDC,colorDC;
 
 	maskDC.CreateCompatibleDC(pDC);
 	colorDC.CreateCompatibleDC(pDC);
 
-	CBitmap* oldMask =
-		maskDC.SelectObject(&masks[index]);
+	CBitmap* oldMask = maskDC.SelectObject(&masks[index]);
 
-	CBitmap* oldColor =
-		colorDC.SelectObject(&colors[index]);
+	CBitmap* oldColor = colorDC.SelectObject(&colors[index]);
 
-	COLORREF oldText =
-		pDC->SetTextColor(RGB(0, 0, 0));
+	COLORREF oldText = pDC->SetTextColor(RGB(0, 0, 0));
 
-	COLORREF oldBk =
-		pDC->SetBkColor(RGB(255, 255, 255));
+	COLORREF oldBk = pDC->SetBkColor(RGB(255, 255, 255));
 
 	pDC->SetStretchBltMode(COLORONCOLOR);
 
 	// Transparentnost - maska
-	pDC->StretchBlt(
-		0, 0, w, h,
-		&maskDC,
-		0, 0, w, h,
-		SRCAND
-	);
+	pDC->StretchBlt(0, 0, w, h, &maskDC, 0, 0, w, h, SRCAND);
 
 	// Transparentnost - slika
-	pDC->StretchBlt(
-		0, 0, w, h,
-		&colorDC,
-		0, 0, w, h,
-		SRCPAINT
-	);
+	pDC->StretchBlt(0, 0, w, h, &colorDC, 0, 0, w, h, SRCPAINT);
 
 	pDC->SetTextColor(oldText);
 	pDC->SetBkColor(oldBk);
@@ -478,8 +397,6 @@ void CIND19745View::DrawPuzzlePiece(CDC* pDC, DImage& img, float x, float y, flo
 
 	pDC->RestoreDC(saved);
 }
-
-
 
 void CIND19745View::OnDraw(CDC* pdc)
 {
@@ -502,10 +419,7 @@ void CIND19745View::OnDraw(CDC* pdc)
 
 	CBitmap* oldBuffer = memDC.SelectObject(&backBuffer);
 
-	memDC.FillSolidRect(
-		0, 0, width, height,
-		RGB(255, 255, 255)
-	);
+	memDC.FillSolidRect(0, 0, width, height, RGB(255, 255, 255));
 
 	for (int i = 0; i < 9; i++)
 		PreparePiece(&memDC, i);
@@ -514,7 +428,6 @@ void CIND19745View::OnDraw(CDC* pdc)
 
 	float xstep = gridStep * 0.8;
 	float ystep = gridStep * 0.9;
-
 
 	DrawPuzzlePiece(&memDC, images[0], xstep * 4 + 5, ystep * 4, 114 - 90, 1, 1, false, true);
 	DrawPuzzlePiece(&memDC, images[6], xstep*10, ystep*4-2, 55, 1, 1, false, true);
@@ -530,11 +443,7 @@ void CIND19745View::OnDraw(CDC* pdc)
 
 	DrawPuzzlePiece(&memDC, images[5], moving_dx, moving_dy, -67.5, 1, 1, false, true);
 
-	pdc->BitBlt(
-		0, 0, width, height,
-		&memDC, 0, 0,
-		SRCCOPY
-	);
+	pdc->BitBlt(0, 0, width, height, &memDC, 0, 0, SRCCOPY);
 
 	memDC.SelectObject(oldBuffer);
 }
@@ -552,13 +461,10 @@ void CIND19745View::DrawGrid(CDC* pdc) {
 
 	pdc->SelectObject(old);
 }
-
-
 // CIND19745View printing
 
 BOOL CIND19745View::OnPreparePrinting(CPrintInfo* pInfo)
 {
-	// default preparation
 	return DoPreparePrinting(pInfo);
 }
 
@@ -571,7 +477,6 @@ void CIND19745View::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
 	// TODO: add cleanup after printing
 }
-
 
 // CIND19745View diagnostics
 
@@ -592,7 +497,6 @@ CIND19745Doc* CIND19745View::GetDocument() const // non-debug version is inline
 	return (CIND19745Doc*)m_pDocument;
 }
 #endif //_DEBUG
-
 
 // CIND19745View message handlers
 
