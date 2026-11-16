@@ -39,6 +39,19 @@ protected:
 	int gridEnd;
 	DImage *images;
 
+	// Dodaci1
+	bool prepared[9] = {};
+	CBitmap masks[9];
+	CBitmap colors[9];
+	void CIND19745View::PreparePiece(CDC* pDC, int index);
+	void MakeBlue(DImage& img);
+	void MakeGray(DImage& img);
+	int MOVING_PIECE;
+	int moving_dx;
+	int moving_dy;
+	int moving_step;
+
+
 	void Translate(CDC* pdc, float dX, float dY, bool rightMultiply);
 	void Scale(CDC* pdc, float sX, float sY, bool rightMultiply);
 	void Rotate(CDC* pdc, float angle, bool rightMultiply);
@@ -52,6 +65,8 @@ protected:
 // Generated message map functions
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 };
 
 #ifndef _DEBUG  // debug version in IND_19745View.cpp
